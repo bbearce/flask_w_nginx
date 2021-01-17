@@ -76,3 +76,29 @@ Jan 17 11:30:46 pop-os systemd[1]: Started A high performance web server and a r
 
 As you can see above, the service appears to have started successfully. However, the best way to test this is to actually request a page from Nginx.
 ![nginx_homepage](./nginx_homepage.jpg)
+
+> I used ```0.0.0.0``` but we can use our server IP too
+
+Try typing this at your server’s command prompt:
+
+```bash
+$ ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
+```
+> that didn't work for me so I delete the ```eth0``` from the command
+
+```bash
+$ ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
+Device "eth0" does not exist.
+$ ip addr show | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
+127.0.0.1
+::1
+192.168.86.37
+fe80::928c:d8ac:88cd:4a51
+172.17.0.1
+192.168.64.1
+10.251.224.224
+fe80::c757:385e:ab7b:53d1
+fe80::fe71:628e:c254:97bb
+```
+
+> both ```127.0.0.0``` and ```0.0.0.0``` worked for me.
