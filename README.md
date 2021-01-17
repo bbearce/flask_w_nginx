@@ -19,7 +19,7 @@ Available applications:
   Nginx HTTPS
 ```
 
-Enable HTTP this by typing:
+Enable HTTP by typing:
 ```bash
 $ sudo ufw allow 'Nginx HTTP'
 Rules updated
