@@ -75,4 +75,4 @@ Jan 17 11:30:46 pop-os systemd[1]: Started A high performance web server and a r
 ```
 
 As you can see above, the service appears to have started successfully. However, the best way to test this is to actually request a page from Nginx.
-![nginx_homepage](nginx_homepage.jpg)
+![nginx_homepage](./nginx_homepage.jpg)
