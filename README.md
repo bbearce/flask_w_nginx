@@ -102,3 +102,72 @@ fe80::fe71:628e:c254:97bb
 ```
 
 > These worked for me: ```localhost```, ```127.0.0.0```, ```0.0.0.0```, ```192.168.86.37```, ```172.17.0.1```, ```192.168.64.1``` and ```10.251.224.224```.
+
+An alternative is typing this, which should give you your public IP address as seen from another location on the internet:
+```bash
+$ curl -4 icanhazip.com
+```
+> This didn't work as I believe our internet router doesn't allow it. I think an azure VM would work.
+
+## Step 4 – Managing the Nginx Process
+
+To stop your web server, type:
+
+```bash
+$ sudo systemctl stop nginx
+```
+ 
+To start the web server when it is stopped, type:
+
+```bash
+$ sudo systemctl start nginx
+```
+ 
+To stop and then start the service again, type:
+
+```bash
+$ sudo systemctl restart nginx
+```
+ 
+If you are simply making configuration changes, Nginx can often reload without dropping connections. To do this, type:
+
+```bash
+$ sudo systemctl reload nginx
+```
+ 
+By default, Nginx is configured to start automatically when the server boots. If this is not what you want, you can disable this behavior by typing:
+
+```bash
+$ sudo systemctl disable nginx
+```
+ 
+To re-enable the service to start up at boot, you can type:
+
+```bash
+$ sudo systemctl enable nginx
+```
+
+## Step 5 – Setting Up Server Blocks (Recommended)
+
+Nginx on Ubuntu 18.04 has one server block enabled by default that is configured to serve documents out of a directory at ```/var/www/html```. Instead of modifying ```/var/www/html```, let’s create a directory structure within ```/var/www``` for our **example.com** site, leaving ```/var/www/html``` in place as the default directory to be served if a client request doesn’t match any other sites.
+
+Create the directory for example.com as follows, using the -p flag to create any necessary parent directories:
+
+```bash
+$ sudo mkdir -p /var/www/example.com/html
+ ```
+Next, assign ownership of the directory with the $USER environment variable:
+```bash
+$ sudo chown -R $USER:$USER /var/www/example.com/html
+```
+
+The permissions of your web roots should be correct if you haven’t modified your umask value, but you can make sure by typing:
+
+```bash
+$ sudo chmod -R 755 /var/www/example.com
+```
+ 
+Next, create a sample ```index.html``` page using nano or your favorite editor:
+```bash
+$ vi /var/www/example.com/html/index.html
+```
