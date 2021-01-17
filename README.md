@@ -17,3 +17,34 @@ Available applications:
   Nginx HTTP
   Nginx HTTPS
 ```
+
+Enable HTTP this by typing:
+```bash
+$ sudo ufw allow 'Nginx HTTP'
+Rules updated
+Rules updated (v6)
+```
+
+> Sometimes nginx ix still inactive
+
+```bash
+$ sudo ufw status
+Status: inactive
+```
+
+> Use this to enable it:
+
+```
+$ sudo ufw enable
+Firewall is active and enabled on system startup
+$ sudo ufw status
+Status: active
+
+To                         Action      From
+--                         ------      ----
+Nginx HTTP                 ALLOW       Anywhere                  
+Nginx HTTP (v6)            ALLOW       Anywhere (v6)
+```
+
+
+
