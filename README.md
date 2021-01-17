@@ -1,13 +1,14 @@
-# flask_w_nginx
+# Flask with Nginx
 
-## Step 1 - Install Nginx
+## Part 1 - Nginx
+### Step 1 - Install Nginx
 > [source](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04)
 ```bash
 $ sudo apt update
 $ sudo apt install nginx
 ```
 
-## Step 2 - Adjusting the Firewall
+### Step 2 - Adjusting the Firewall
 
 ```bash
 $ sudo ufw apt list
@@ -46,7 +47,7 @@ Nginx HTTP                 ALLOW       Anywhere
 Nginx HTTP (v6)            ALLOW       Anywhere (v6)
 ```
 
-## Step 3 - Checking Your Web server
+### Step 3 - Checking Your Web server
 
 > It should already be up and running
 
@@ -109,7 +110,7 @@ $ curl -4 icanhazip.com
 ```
 > This didn't work as I believe our internet router doesn't allow it. I think an azure VM would work.
 
-## Step 4 – Managing the Nginx Process
+### Step 4 – Managing the Nginx Process
 
 To stop your web server, type:
 
@@ -147,7 +148,7 @@ To re-enable the service to start up at boot, you can type:
 $ sudo systemctl enable nginx
 ```
 
-## Step 5 – Setting Up Server Blocks (Recommended)
+### Step 5 – Setting Up Server Blocks (Recommended)
 
 Nginx on Ubuntu 18.04 has one server block enabled by default that is configured to serve documents out of a directory at ```/var/www/html```. Instead of modifying ```/var/www/html```, let’s create a directory structure within ```/var/www``` for our **example.com** site, leaving ```/var/www/html``` in place as the default directory to be served if a client request doesn’t match any other sites.
 
@@ -242,3 +243,6 @@ Now if you navigate to ```http://example.com``` you should see this:
 > NOTE 2: even that didn't work first time because example.com and ngnix's default directory and site were both on port 80 and nginx's default was chosen over ```example.com```. This is why in the examples above I change ```example.com``` to serve on port ```81```.
 
 > [Great Video Tutorial](https://www.youtube.com/watch?v=1ndlRiaYiWQ)
+
+
+## Part 2 - Flask Integration
