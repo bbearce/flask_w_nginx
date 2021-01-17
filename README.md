@@ -11,8 +11,7 @@ sudo apt install nginx
 
 ```bash
 sudo ufw apt list
-```
-```bash
+
 Available applications:
   CUPS
   Nginx Full
