@@ -549,6 +549,44 @@ lines 1-22
 
 ```
 
+### Step 6 — Configuring Nginx to Proxy Requests
+
+> This is where we start using the ```example.com``` site from earlier.
+
+Edit the ```/etc/nginx/sites-available/example.com``` server block. Within this block, we’ll include the uwsgi_params file that specifies some general uWSGI parameters that need to be set. We’ll then pass the requests to the socket we defined using the uwsgi_pass directive:
+
+```bash
+server {
+        listen 81;
+
+        server_name example.com www.example.com;
+
+        location / {
+            include uwsgi_params;
+            uwsgi_pass unix:/home/bbearce/Documents/flask_w_nginx/myproject/myproject.sock;
+        }
+}
+```
+
+With that, we can test for syntax errors by typing:
+```bash
+$ sudo nginx -t
+```
+
+If this returns without indicating any issues, restart the Nginx process to read the new configuration:
+```bash
+$ sudo systemctl restart nginx
+```
+
+You should see your application output:
+
+![flask_app](./flask_app.jpg)
 
 
+If you encounter any errors, trying checking the following:
+
+* ```$ sudo less /var/log/nginx/error.log```: checks the Nginx error logs.  
+* ```$ sudo less /var/log/nginx/access.log```: checks the Nginx access logs.  
+* ```$ sudo journalctl -u nginx```: checks the Nginx process logs.  
+* ```$ sudo journalctl -u myproject```: checks your Flask app’s uWSGI logs.  
 
