@@ -236,3 +236,9 @@ $ sudo systemctl restart nginx
 
 Now if you navigate to ```http://example.com``` you should see this:
 ![example.com](./nginx_example.com.jpg)
+
+> NOTE 1: this didn't work at first and brought me to someone elses ```example.com```. What you need to do is edit ```/etc/hosts``` and map ```example.com``` to ```localhost``` or ```0.0.0.0```. Once I did that it worked. 
+
+> NOTE 2: even that didn't work first time because example.com and ngnix's default directory and site were both on port 80 and nginx's default was chosen over ```example.com```. This is why in the examples above I change ```example.com``` to serve on port ```81```.
+
+
