@@ -371,5 +371,184 @@ unable to load app 0 (mountpoint='') (callable not found or import error)
 spawned uWSGI worker 1 (and the only) (pid: 14095, cores: 1)
 ```
 
+Visit your server’s IP address with :5000 appended to the end in your web browser again:
+```bash
+http://your_server_ip:5000
+```
+
+We’re now done with our virtual environment, so we can deactivate it:
+```bash
+deactivate
+```
+
+> Any Python commands will now use the system’s Python environment again.
+
+#### Creating a uWSGI Configuration File
+You have tested that uWSGI is able to serve your application, but ultimately you will want something more robust for long-term usage. You can create a uWSGI configuration file with the relevant options for this.
+
+Let’s place that file in our project directory and call it ```myproject.ini```:
+```bash
+$ vi ./myproject.ini
+```
+
+Inside, we will start off with the ```[uwsgi]``` header so that uWSGI knows to apply the settings. We’ll specify two things: the module itself, by referring to the wsgi.py file minus the extension, and the callable within the file, ```app```:
+
+```bash
+[uwsgi]
+module = wsgi:app
+```
+
+Next, we’ll tell uWSGI to start up in master mode and spawn five worker processes to serve actual requests:
+
+```bash
+[uwsgi]
+module = wsgi:app
+
+master = true
+processes = 5
+
+```
+
+When you were testing, you exposed uWSGI on a network port. However, you’re going to be using Nginx to handle actual client connections, which will then pass requests to uWSGI. Since these components are operating on the same computer, a Unix socket is preferable because it is faster and more secure. Let’s call the socket ```myproject.sock``` and place it in this directory.
+
+Let’s also change the permissions on the socket. We’ll be giving the Nginx group ownership of the uWSGI process later on, so we need to make sure the group owner of the socket can read information from it and write to it. We will also clean up the socket when the process stops by adding the ```vacuum``` option:
+
+```bash
+[uwsgi]
+module = wsgi:app
+
+master = true
+processes = 5
+
+socket = myproject.sock
+chmod-socket = 660
+vacuum = true
+```
+
+The last thing we’ll do is set the die-on-term option. This can help ensure that the init system and uWSGI have the same assumptions about what each process signal means. Setting this aligns the two system components, implementing the expected behavior:
+
+```bash
+[uwsgi]
+module = wsgi:app
+
+master = true
+processes = 5
+
+socket = myproject.sock
+chmod-socket = 660
+vacuum = true
+
+die-on-term = true
+```
+
+> You may have noticed that we did not specify a protocol like we did from the command line. That is because by default, uWSGI speaks using the ```uwsgi``` protocol, a fast binary protocol designed to communicate with other servers. Nginx can speak this protocol natively, so it’s better to use this than to force communication by HTTP.
+
+### Step 5 — Creating a systemd Unit File
+
+Next, let’s create the systemd service unit file. Creating a systemd unit file will allow Ubuntu’s init system to automatically start uWSGI and serve the Flask application whenever the server boots.
+
+Create a unit file ending in .service within the /etc/systemd/system directory to begin:
+```bash
+$ sudo vi /etc/systemd/system/myproject.service
+```
+
+Inside, we’ll start with the ```[Unit]``` section, which is used to specify metadata and dependencies. Let’s put a description of our service here and tell the init system to only start this after the networking target has been reached:
+
+```bash
+[Unit]
+Description=uWSGI instance to serve myproject
+After=network.target
+```
+
+Next, let’s open up the ```[Service]``` section. This will specify the user and group that we want the process to run under. Let’s give our regular user account ownership of the process since it owns all of the relevant files. Let’s also give group ownership to the ```www-data``` group so that Nginx can communicate easily with the uWSGI processes. Remember to replace the username here with your username:
+
+```bash
+[Unit]
+Description=uWSGI instance to serve myproject
+After=network.target
+
+[Service]
+User=bbearce
+Group=www-data
+```
+
+Next, let’s map out the working directory and set the ```PATH``` environmental variable so that the init system knows that the executables for the process are located within our virtual environment. Let’s also specify the command to start the service. Systemd requires that we give the full path to the uWSGI executable, which is installed within our virtual environment. We will pass the name of the ```.ini``` configuration file we created in our project directory.
+
+Remember to replace the username and project paths with your own information:
+
+```bash
+[Unit]
+Description=uWSGI instance to serve myproject
+After=network.target
+
+[Service]
+User=bbearce
+Group=www-data
+WorkingDirectory=/home/bbearce/Documents/flask_w_nginx/myproject
+Environment="PATH=/home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin"
+ExecStart=/home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi --ini myproject.ini
+```
+
+Finally, let’s add an ```[Install]``` section. This will tell systemd what to link this service to if we enable it to start at boot. We want this service to start when the regular multi-user system is up and running:
+
+```bash
+[Unit]
+Description=uWSGI instance to serve myproject
+After=network.target
+
+[Service]
+User=bbearce
+Group=www-data
+WorkingDirectory=/home/bbearce/Documents/flask_w_nginx/myproject
+Environment="PATH=/home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin"
+ExecStart=/home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi --ini myproject.ini
+
+[Install]
+WantedBy=multi-user.target
+```
+
+With that, our systemd service file is complete. Save and close it now.
+
+We can now start the uWSGI service we created and enable it so that it starts at boot:
+
+```bash
+$ sudo systemctl start myproject
+$ sudo systemctl enable myproject
+
+Created symlink /etc/systemd/system/multi-user.target.wants/myproject.service → /etc/systemd/system/myproject.service.
+```
+
+Let’s check the status:
+
+```bash
+$ sudo systemctl status myproject
+
+● myproject.service - uWSGI instance to serve myproject
+     Loaded: loaded (/etc/systemd/system/myproject.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2021-01-17 16:23:03 EST; 1min 3s ago
+   Main PID: 17331 (uwsgi)
+      Tasks: 6 (limit: 28605)
+     Memory: 19.6M
+     CGroup: /system.slice/myproject.service
+             ├─17331 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+             ├─17345 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+             ├─17346 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+             ├─17347 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+             ├─17348 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+             └─17349 /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi ->
+
+Jan 17 16:23:03 pop-os uwsgi[17331]: mapped 437520 bytes (427 KB) for 5 cores
+Jan 17 16:23:03 pop-os uwsgi[17331]: *** Operational MODE: preforking ***
+Jan 17 16:23:03 pop-os uwsgi[17331]: WSGI app 0 (mountpoint='') ready in 0 seconds on interpr>
+Jan 17 16:23:03 pop-os uwsgi[17331]: *** uWSGI is running in multiple interpreter mode ***
+Jan 17 16:23:03 pop-os uwsgi[17331]: spawned uWSGI master process (pid: 17331)
+Jan 17 16:23:03 pop-os uwsgi[17331]: spawned uWSGI worker 1 (pid: 17345, cores: 1)
+Jan 17 16:23:03 pop-os uwsgi[17331]: spawned uWSGI worker 2 (pid: 17346, cores: 1)
+Jan 17 16:23:03 pop-os uwsgi[17331]: spawned uWSGI worker 3 (pid: 17347, cores: 1)
+lines 1-22
+
+```
+
+
 
 
