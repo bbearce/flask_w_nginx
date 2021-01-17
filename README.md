@@ -246,3 +246,130 @@ Now if you navigate to ```http://example.com``` you should see this:
 
 
 ## Part 2 - Flask Integration
+
+> [Source](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04)
+
+### Step 1 — Installing the Components from the Ubuntu Repositories
+```bash
+$ sudo apt update
+$ sudo apt install python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools
+```
+
+### Step 2 — Creating a Python Virtual Environment
+
+```bash
+mkdir ./myproject
+cd ./myproject
+```
+
+Create a virtual environment to store your Flask project’s Python requirements by typing:
+```bash
+$ python3 -m venv myprojectenv
+$ source myprojectenv/bin/activate
+```
+
+### Step 3 — Setting Up a Flask Application
+First, let’s install wheel with the local instance of pip to ensure that our packages will install even if they are missing wheel archives:
+```bash
+pip install wheel
+```
+
+Next, let’s install Flask and uWSGI:
+```bash
+$ pip install uwsgi Flask
+```
+
+#### Creating a Sample App
+
+While your application might be more complex, we’ll create our Flask app in a single file, called myproject.py:
+```bash
+$ vi myproject.py
+```
+
+If you followed the initial server setup guide, you should have a UFW firewall enabled. To test the application, you need to allow access to port 5000:
+
+```bash
+$ sudo ufw allow 5000
+Rule added
+Rule added (v6)
+```
+
+Now, you can test your Flask app by typing:
+```bash
+$ python myproject.py
+ * Serving Flask app "myproject" (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+```
+
+#### Creating the WSGI Entry Point
+
+Next, let’s create a file that will serve as the entry point for our application. This will tell our uWSGI server how to interact with it.
+
+Let’s call the file ```wsgi.py```:
+
+```bash
+$ vi ./wsgi.py
+```
+
+In this file, let’s import the Flask instance from our application and then run it:
+
+```bash
+from myproject import app
+
+if __name__ == "__main__":
+    app.run()
+```
+
+
+### Step 4 — Configuring uWSGI
+
+Your application is now written with an entry point established. We can now move on to configuring uWSGI.
+
+#### Testing uWSGI Serving
+
+Let’s test to make sure that uWSGI can serve our application.
+
+We can do this by simply passing it the name of our entry point. This is constructed by the name of the module (minus the ```.py``` extension) plus the name of the callable within the application. In our case, this is ```wsgi:app```.
+
+Let’s also specify the socket, so that it will be started on a publicly available interface, as well as the protocol, so that it will use HTTP instead of the ```uwsgi``` binary protocol. We’ll use the same port number, ```5000```, that we opened earlier:
+
+```bash
+$ uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
+
+*** Starting uWSGI 2.0.19.1 (64bit) on [Sun Jan 17 15:40:48 2021] ***
+compiled with version: 9.3.0 on 17 January 2021 19:57:08
+os: Linux-5.4.0-7642-generic #46~1598628707~20.04~040157c-Ubuntu SMP Fri Aug 28 18:02:16 UTC 
+nodename: pop-os
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 8
+current working directory: /home/bbearce/Documents/flask_w_nginx/myproject
+detected binary path: /home/bbearce/Documents/flask_w_nginx/myproject/myprojectenv/bin/uwsgi
+*** WARNING: you are running uWSGI without its master process manager ***
+your processes number limit is 95353
+your memory page size is 4096 bytes
+detected max file descriptor number: 1024
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to TCP address 0.0.0.0:5000 fd 3
+Python version: 3.8.5 (default, Jul 28 2020, 12:59:40)  [GCC 9.3.0]
+*** Python threads support is disabled. You can enable it with --enable-threads ***
+Python main interpreter initialized at 0x562e5fe38320
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 72920 bytes (71 KB) for 1 cores
+*** Operational MODE: single process ***
+ModuleNotFoundError: No module named 'wsgi'
+unable to load app 0 (mountpoint='') (callable not found or import error)
+*** no app loaded. going in full dynamic mode ***
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI worker 1 (and the only) (pid: 14095, cores: 1)
+```
+
+
+
