@@ -1,4 +1,4 @@
-# flask_w_nginx
+# flask_w_nginxx
 
 ## Install Nginx
 > [source](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04)
