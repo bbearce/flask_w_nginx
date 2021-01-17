@@ -85,7 +85,7 @@ Try typing this at your server’s command prompt:
 ```bash
 $ ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
 ```
-> that didn't work for me so I delete the ```eth0``` from the command
+> that didn't work for me so I deleted the ```eth0``` from the command
 
 ```bash
 $ ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
