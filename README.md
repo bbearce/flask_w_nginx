@@ -590,3 +590,92 @@ If you encounter any errors, trying checking the following:
 * ```$ sudo journalctl -u nginx```: checks the Nginx process logs.  
 * ```$ sudo journalctl -u myproject```: checks your Flask app’s uWSGI logs.  
 
+### Step 7 — Securing the Application
+
+#### Install Certbot
+
+```bash
+$ sudo snap install --classic certbot
+```
+
+#### Prepare the Certbot command
+
+```bash
+$ sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+#### Choose how you'd like to run Certbot
+
+Run this command to get a certificate and have Certbot edit your Nginx configuration automatically to serve it, turning on HTTPS access in a single step.
+
+```bash
+$ sudo certbot --nginx
+```
+
+If you're feeling more conservative and would like to make the changes to your Nginx configuration by hand, run this command.
+
+```bash
+$ sudo certbot certonly --nginx
+```
+
+> I chose the first option
+
+Here is the dialog:
+
+```bash
+$ sudo certbot --nginx
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator nginx, Installer nginx
+Enter email address (used for urgent renewal and security notices)
+ (Enter 'c' to cancel): bbearce@gmail.com
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Please read the Terms of Service at
+https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf. You must
+agree in order to register with the ACME server. Do you agree?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: y
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Would you be willing, once your first certificate is successfully issued, to
+share your email address with the Electronic Frontier Foundation, a founding
+partner of the Let's Encrypt project and the non-profit organization that
+develops Certbot? We'd like to send you email about our work encrypting the web,
+EFF news, campaigns, and ways to support digital freedom.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: n
+Account registered.
+
+Which names would you like to activate HTTPS for?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+1: example.com
+2: www.example.com
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Select the appropriate numbers separated by commas and/or spaces, or leave input
+blank to select all options shown (Enter 'c' to cancel): 1
+Requesting a certificate for example.com
+Performing the following challenges:
+http-01 challenge for example.com
+Waiting for verification...
+Challenge failed for domain example.com
+http-01 challenge for example.com
+Cleaning up challenges
+Some challenges have failed.
+
+IMPORTANT NOTES:
+ - The following errors were reported by the server:
+
+   Domain: example.com
+   Type:   unauthorized
+   Detail: Invalid response from
+   http://example.com/.well-known/acme-challenge/lV3rb3swo9cvCOjBIL4RUaHBKGbcDjxFx3iVcbudgng
+   [2606:2800:220:1:248:1893:25c8:1946]: "<!doctype
+   html>\n<html>\n<head>\n    <title>Example Domain</title>\n\n
+   <meta charset=\"utf-8\" />\n    <meta http-equiv=\"Content-type"
+
+   To fix these errors, please make sure that your domain name was
+   entered correctly and the DNS A/AAAA record(s) for that domain
+   contain(s) the right IP address.
+
+```
+So it failed as I don't actually own example.com
