@@ -241,4 +241,4 @@ Now if you navigate to ```http://example.com``` you should see this:
 
 > NOTE 2: even that didn't work first time because example.com and ngnix's default directory and site were both on port 80 and nginx's default was chosen over ```example.com```. This is why in the examples above I change ```example.com``` to serve on port ```81```.
 
-
+> [Great Video Tutorial](https://www.youtube.com/watch?v=1ndlRiaYiWQ)
