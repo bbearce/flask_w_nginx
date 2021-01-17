@@ -171,3 +171,38 @@ Next, create a sample ```index.html``` page using nano or your favorite editor:
 ```bash
 $ vi /var/www/example.com/html/index.html
 ```
+
+In order for Nginx to serve this content, it’s necessary to create a server block with the correct directives. Instead of modifying the default configuration file directly, let’s make a new one at ```/etc/nginx/sites-available/example.com```:
+
+```bash
+$ sudo vi /etc/nginx/sites-available/example.com
+```
+
+Next, let’s enable the file by creating a link from it to the sites-enabled directory, which Nginx reads from during startup:
+
+```bash
+$ sudo ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/
+```
+
+Two server blocks are now enabled and configured to respond to requests based on their listen and server_name directives:
+
+* example.com: Will respond to requests for example.com and www.example.com.  
+* default: Will respond to any requests on port 80 that do not match the other two blocks.
+
+To avoid a possible hash bucket memory problem that can arise from adding additional server names, it is necessary to adjust a single value in the /etc/nginx/nginx.conf file. Open the file:
+
+sudo nano /etc/nginx/nginx.conf
+ 
+Find the server_names_hash_bucket_size directive and remove the # symbol to uncomment the line:
+
+/etc/nginx/nginx.conf
+...
+http {
+    ...
+    server_names_hash_bucket_size 64;
+    ...
+}
+...
+
+
+
