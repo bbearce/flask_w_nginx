@@ -178,6 +178,22 @@ In order for Nginx to serve this content, it’s necessary to create a server bl
 $ sudo vi /etc/nginx/sites-available/example.com
 ```
 
+```bash
+server {
+        listen 81;
+        listen [::]:81;
+
+        root /var/www/example.com/html;
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name example.com www.example.com;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
+```
+
 Next, let’s enable the file by creating a link from it to the sites-enabled directory, which Nginx reads from during startup:
 
 ```bash
@@ -189,13 +205,14 @@ Two server blocks are now enabled and configured to respond to requests based on
 * example.com: Will respond to requests for example.com and www.example.com.  
 * default: Will respond to any requests on port 80 that do not match the other two blocks.
 
-To avoid a possible hash bucket memory problem that can arise from adding additional server names, it is necessary to adjust a single value in the /etc/nginx/nginx.conf file. Open the file:
+To avoid a possible hash bucket memory problem that can arise from adding additional server names, it is necessary to adjust a single value in the ```/etc/nginx/nginx.conf``` file. Open the file:
 
-sudo nano /etc/nginx/nginx.conf
- 
-Find the server_names_hash_bucket_size directive and remove the # symbol to uncomment the line:
+```bash
+$ sudo vi /etc/nginx/nginx.conf
+```
 
-/etc/nginx/nginx.conf
+Find the ```server_names_hash_bucket_size``` directive and remove the # symbol to uncomment the line:
+```bash
 ...
 http {
     ...
@@ -203,6 +220,19 @@ http {
     ...
 }
 ...
+```
 
+Next, test to make sure that there are no syntax errors in any of your Nginx files:
 
+```bash
+$ sudo nginx -t
+```
+ 
+If there aren’t any problems, restart Nginx to enable your changes:
 
+```bash
+$ sudo systemctl restart nginx
+```
+
+Now if you navigate to ```http://example.com``` you should see this:
+![example.com](./nginx_example.com.jpg)
